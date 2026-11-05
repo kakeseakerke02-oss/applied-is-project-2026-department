@@ -21,6 +21,8 @@ def make_engine(db_path: Path, echo: bool = True):
 
     @event.listens_for(engine, "connect")
     def enable_foreign_keys(connection, _):
+        # SQLite lower() әдепкіде кирилл әріптерін толық түрлендірмейді.
+        connection.create_function("casefold", 1, lambda value: (value or "").casefold(), deterministic=True)
         cursor = connection.cursor()
         cursor.execute("PRAGMA foreign_keys=ON")
         cursor.close()

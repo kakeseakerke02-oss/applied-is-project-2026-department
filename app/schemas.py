@@ -39,6 +39,27 @@ class CriterionRead(BaseModel):
     max_score: Decimal
 
 
+class AssessmentToolUpdate(InputModel):
+    """Жіберілмеген өріс сақталады; міндетті бағанға null жіберілмейді."""
+
+    discipline_id: int | None = Field(default=None, gt=0, strict=True)
+    author_id: int | None = Field(default=None, gt=0, strict=True)
+    title: str | None = Field(default=None, min_length=1, max_length=200)
+    tool_type: Literal["Тест", "Емтихан", "Зертханалық жұмыс", "Практикалық тапсырма"] | None = None
+    content: str | None = Field(default=None, min_length=1, max_length=20000)
+    criteria: list[CriterionCreate] | None = Field(default=None, min_length=1, max_length=100)
+
+    @model_validator(mode="after")
+    def validate_supplied_fields(self):
+        if any(getattr(self, name) is None for name in self.model_fields_set):
+            raise ValueError("Берілген өрістің мәні null болмауы тиіс; өзгертпесеңіз, өрісті жібермеңіз")
+        if self.criteria is not None:
+            descriptions = [criterion.description for criterion in self.criteria]
+            if len(descriptions) != len(set(descriptions)):
+                raise ValueError("Бір құралда критерий сипаттамалары қайталанбауы тиіс")
+        return self
+
+
 class AssessmentToolRead(BaseModel):
     id: int
     discipline_id: int
