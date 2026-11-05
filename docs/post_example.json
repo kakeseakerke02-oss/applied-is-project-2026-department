@@ -1,0 +1,11 @@
+{
+  "discipline_id": 1,
+  "author_id": 1,
+  "title": "SQL сұраныстары бойынша бақылау жұмысы",
+  "tool_type": "Практикалық тапсырма",
+  "content": "SELECT, JOIN және GROUP BY операторларын қолданып 3 сұраныс жазыңыз.",
+  "criteria": [
+    {"description": "Сұраныстардың дұрыстығы", "max_score": 20},
+    {"description": "Шешімді түсіндіру", "max_score": 10}
+  ]
+}

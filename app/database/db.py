@@ -1,5 +1,6 @@
 """SQLite қосылымы, кестелерді құру және сессия өмірлік циклі."""
 
+import os
 from pathlib import Path
 
 from sqlalchemy import event
@@ -8,7 +9,7 @@ from sqlmodel import Session, SQLModel, create_engine
 from app.database import models  # Барлық модельдерді metadata ішінде тіркеу.
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
-DB_PATH = PROJECT_ROOT / "database.db"
+DB_PATH = Path(os.environ.get("DATABASE_PATH", str(PROJECT_ROOT / "database.db"))).resolve()
 
 
 def make_engine(db_path: Path, echo: bool = True):
