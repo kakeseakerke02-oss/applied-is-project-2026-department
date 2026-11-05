@@ -14,7 +14,7 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(
-    title="Кафедраның бағалау құралдары қоры", version="0.5.0",
+    title="Кафедраның бағалау құралдары қоры", version="0.7.0",
     description="Бағалау құралдарын алу, қосу, өзгерту, жою және сүзу API-ы.",
     lifespan=lifespan,
 )
@@ -23,4 +23,4 @@ app.include_router(reference_router)
 
 @app.get("/")
 def root():
-    return {"status": "ok", "project": "department-assessment-fund", "labs": [1, 2, 3, 4, 5]}
+    return {"status": "ok", "project": "department-assessment-fund", "labs": [1, 2, 3, 4, 5, 6, 7]}
