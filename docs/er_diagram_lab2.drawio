@@ -1,0 +1,79 @@
+<?xml version='1.0' encoding='utf-8'?>
+<mxfile host="app.diagrams.net" type="device">
+  <diagram name="ЛР2 Қазақша ER диаграммасы">
+    <mxGraphModel grid="1" page="1" pageWidth="1700" pageHeight="1150">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="title" value="Кафедраның бағалау құралдары қоры — 2 зертханалық жұмыс" style="text;html=1;fontSize=30;align=left;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="50" y="50" width="1550" height="60" />
+        </mxCell>
+        <mxCell id="dept" value="&lt;b&gt;Кафедра&lt;/b&gt;&lt;hr&gt;БК  жазба коды : бүтін сан&lt;br&gt;БМ  атауы : мәтін&lt;br&gt;БМ  кафедра коды : мәтін" style="rounded=1;html=1;whiteSpace=wrap;fillColor=#FFFFFF;strokeColor=#637895;fontSize=16;align=left;verticalAlign=top;spacing=12;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="50" y="220" width="390" height="158" />
+        </mxCell>
+        <mxCell id="teacher" value="&lt;b&gt;Оқытушы&lt;/b&gt;&lt;hr&gt;БК  жазба коды : бүтін сан&lt;br&gt;СК  кафедра коды : бүтін сан&lt;br&gt;аты-жөні : мәтін&lt;br&gt;БМ  электрондық пошта : мәтін" style="rounded=1;html=1;whiteSpace=wrap;fillColor=#FFFFFF;strokeColor=#637895;fontSize=16;align=left;verticalAlign=top;spacing=12;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="50" y="650" width="390" height="189" />
+        </mxCell>
+        <mxCell id="link" value="&lt;b&gt;Оқытушы–Пән байланысы&lt;/b&gt;&lt;hr&gt;БК, СК  оқытушы коды : бүтін сан&lt;br&gt;БК, СК  пән коды : бүтін сан" style="rounded=1;html=1;whiteSpace=wrap;fillColor=#FFFFFF;strokeColor=#637895;fontSize=16;align=left;verticalAlign=top;spacing=12;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="625" y="220" width="420" height="127" />
+        </mxCell>
+        <mxCell id="course" value="&lt;b&gt;Пән&lt;/b&gt;&lt;hr&gt;БК  жазба коды : бүтін сан&lt;br&gt;СК  кафедра коды : бүтін сан&lt;br&gt;БМ  пән коды : мәтін&lt;br&gt;атауы : мәтін" style="rounded=1;html=1;whiteSpace=wrap;fillColor=#FFFFFF;strokeColor=#637895;fontSize=16;align=left;verticalAlign=top;spacing=12;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="1210" y="220" width="435" height="189" />
+        </mxCell>
+        <mxCell id="tool" value="&lt;b&gt;Бағалау құралы&lt;/b&gt;&lt;hr&gt;БК  жазба коды : бүтін сан&lt;br&gt;СК  пән коды : бүтін сан&lt;br&gt;СК  автор коды : бүтін сан&lt;br&gt;атауы : мәтін&lt;br&gt;құрал түрі : мәтін&lt;br&gt;мазмұны : мәтін&lt;br&gt;жасалған уақыты : күн мен уақыт" style="rounded=1;html=1;whiteSpace=wrap;fillColor=#FFFFFF;strokeColor=#637895;fontSize=16;align=left;verticalAlign=top;spacing=12;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="625" y="650" width="420" height="282" />
+        </mxCell>
+        <mxCell id="criterion" value="&lt;b&gt;Бағалау критерийі&lt;/b&gt;&lt;hr&gt;БК  жазба коды : бүтін сан&lt;br&gt;СК  бағалау құралының коды : бүтін сан&lt;br&gt;сипаттама : мәтін&lt;br&gt;максималды балл : ондық сан &gt; 0" style="rounded=1;html=1;whiteSpace=wrap;fillColor=#FFFFFF;strokeColor=#637895;fontSize=16;align=left;verticalAlign=top;spacing=12;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="1210" y="650" width="435" height="189" />
+        </mxCell>
+        <mxCell id="e1" value="1 : N  оқытушылар" edge="1" parent="1" source="dept" target="teacher" style="edgeStyle=orthogonalEdgeStyle;html=1;startArrow=ERone;endArrow=ERmany;fontSize=15;labelBackgroundColor=#F5F7FB;">
+          <mxGeometry as="geometry" relative="1">
+            <Array as="points" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e2" value="1 : N  кафедра пәндері" edge="1" parent="1" source="dept" target="course" style="edgeStyle=orthogonalEdgeStyle;html=1;startArrow=ERone;endArrow=ERmany;fontSize=15;labelBackgroundColor=#F5F7FB;">
+          <mxGeometry as="geometry" relative="1">
+            <Array as="points">
+              <mxPoint x="245" y="170" />
+              <mxPoint x="1430" y="170" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e3" value="1 : N  автор" edge="1" parent="1" source="teacher" target="tool" style="edgeStyle=orthogonalEdgeStyle;html=1;startArrow=ERone;endArrow=ERmany;fontSize=15;labelBackgroundColor=#F5F7FB;">
+          <mxGeometry as="geometry" relative="1">
+            <Array as="points" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e4" value="1 : N  пәннің құралдары" edge="1" parent="1" source="course" target="tool" style="edgeStyle=orthogonalEdgeStyle;html=1;startArrow=ERone;endArrow=ERmany;fontSize=15;labelBackgroundColor=#F5F7FB;">
+          <mxGeometry as="geometry" relative="1">
+            <Array as="points">
+              <mxPoint x="1425" y="495" />
+              <mxPoint x="835" y="495" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e5" value="1 : N  құрамы" edge="1" parent="1" source="tool" target="criterion" style="edgeStyle=orthogonalEdgeStyle;html=1;startArrow=ERone;endArrow=ERmany;fontSize=15;labelBackgroundColor=#F5F7FB;">
+          <mxGeometry as="geometry" relative="1">
+            <Array as="points" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e6" value="1 : N" edge="1" parent="1" source="teacher" target="link" style="edgeStyle=orthogonalEdgeStyle;html=1;startArrow=ERone;endArrow=ERmany;fontSize=15;labelBackgroundColor=#F5F7FB;">
+          <mxGeometry as="geometry" relative="1">
+            <Array as="points">
+              <mxPoint x="520" y="700" />
+              <mxPoint x="520" y="285" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e7" value="1 : N" edge="1" parent="1" source="course" target="link" style="edgeStyle=orthogonalEdgeStyle;html=1;startArrow=ERone;endArrow=ERmany;fontSize=15;labelBackgroundColor=#F5F7FB;">
+          <mxGeometry as="geometry" relative="1">
+            <Array as="points" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="legend" value="Оқытушы ↔ Пән: N:M. Оқытушы–Пән кестесі екі сыртқы кілттен тұратын құрама алғашқы кілтпен байланысады." style="text;html=1;fontSize=18;align=left;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="50" y="1020" width="1550" height="50" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
