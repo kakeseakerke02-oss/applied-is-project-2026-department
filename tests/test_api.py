@@ -201,8 +201,7 @@ class AssessmentAPITest(unittest.TestCase):
             ui = AppTest.from_file(str(ROOT / "app/frontend/ui.py")).run(timeout=30)
             self.assertFalse(ui.exception)
             self.assertEqual(len(ui.metric), 3)
-            ui.text_input[0].set_value("SQL")
-            button(ui, "Іздеу").click().run(timeout=30)
+            ui.text_input[0].set_value("SQL").run(timeout=30)
             self.assertFalse(ui.exception)
             self.assertTrue(all("sql" in v.casefold() for v in ui.dataframe[0].value["Атауы"]))
             button(ui, "Сүзгілерді тазарту").click().run(timeout=30)
@@ -218,6 +217,9 @@ class AssessmentAPITest(unittest.TestCase):
             self.assertEqual(len(found), 1)
             created_id = found[0]["id"]
             self.assertEqual(found[0]["total_score"], "30.00")
+            self.assertEqual(ui.radio[0].value, "Бағалау құралдары")
+            self.assertIn(created_id, list(ui.dataframe[0].value["№"]))
+            self.assertEqual(ui.selectbox[-1].value, created_id)
 
             ui.radio[0].set_value("Құралды өзгерту").run(timeout=30)
             ui.selectbox[0].set_value(created_id).run(timeout=30)

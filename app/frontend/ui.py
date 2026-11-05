@@ -8,14 +8,10 @@ ROOT = Path(__file__).resolve().parents[2]
 TYPES = ["Тест", "Емтихан", "Зертханалық жұмыс", "Практикалық тапсырма"]
 PAGES = ["Бағалау құралдары", "Құрал қосу", "Құралды өзгерту", "Құралды жою", "Жоба туралы"]
 st.set_page_config(page_title="Кафедра қоры", page_icon="📚", layout="wide")
-st.html("""<style>
-.stApp {background:#f5f7fb;color:#192c4c}
-[data-testid="stSidebar"] {background:#e8eef8}
-[data-testid="stMetric"] {background:white;border:1px solid #dce4f0;border-radius:12px;padding:18px}
-.block-container {max-width:1400px;padding-top:2.4rem;padding-bottom:3rem}
-h1,h2,h3 {color:#192c4c}
-div.stButton > button[kind="primary"],div.stFormSubmitButton > button[kind="primary"] {background:#2355a4;border-color:#2355a4}
-</style>""")
+
+def reset_filters():
+    for key, value in {"search": "", "discipline": 0, "author": 0, "kind": "Барлық түр", "min": None, "max": None}.items():
+        st.session_state["filter_" + key] = value
 
 def call(method, path, **kwargs):
     try:
@@ -55,7 +51,11 @@ def detail(tool):
 
 st.sidebar.title("Кафедра қоры")
 st.sidebar.caption("Бағалау материалдарын басқару")
-page = st.sidebar.radio("Бөлім", PAGES)
+if "open_created_tool" in st.session_state:
+    st.session_state["page"] = PAGES[0]
+    st.session_state["selected_tool"] = st.session_state.pop("open_created_tool")
+    reset_filters()
+page = st.sidebar.radio("Бөлім", PAGES, key="page")
 st.sidebar.divider()
 if st.sidebar.button("Деректерді жаңарту", width="stretch"):
     st.rerun()
@@ -83,29 +83,22 @@ st.divider()
 
 if page == "Бағалау құралдары":
     st.subheader("Құралдар қоры")
-    def reset_filters():
-        for key, value in {"search": "", "discipline": 0, "author": 0, "kind": "Барлық түр", "min": None, "max": None}.items():
-            st.session_state["filter_" + key] = value
-        st.session_state["filters"] = {}
-    with st.form("filters_form"):
+    with st.container(border=True):
         a, b, c = st.columns([2, 1, 1])
-        search = a.text_input("Атауы бойынша іздеу", placeholder="Мысалы, SQL", key="filter_search")
+        search = a.text_input("Атауы бойынша іздеу", placeholder="Мысалы, SQL", key="filter_search", live=True)
         discipline = b.selectbox("Пән", [0] + list(discipline_labels), format_func=lambda k: discipline_labels.get(k, "Барлық пән"), key="filter_discipline")
         author = c.selectbox("Автор", [0] + list(teacher_labels), format_func=lambda k: teacher_labels.get(k, "Барлық автор"), key="filter_author")
         a, b, c = st.columns(3)
         kind = a.selectbox("Құрал түрі", ["Барлық түр"] + TYPES, key="filter_kind")
         minimum = b.number_input("Ең төменгі жалпы балл", min_value=0.0, value=None, key="filter_min")
         maximum = c.number_input("Ең жоғарғы жалпы балл", min_value=0.0, value=None, key="filter_max")
-        apply = st.form_submit_button("Іздеу", type="primary")
-        st.form_submit_button("Сүзгілерді тазарту", on_click=reset_filters)
-    if apply:
-        if minimum is not None and maximum is not None and minimum > maximum:
-            st.error("Ең төменгі балл жоғарғы баллдан үлкен болмауы тиіс")
-        else:
-            values = {"search": search.strip(), "discipline_id": discipline, "author_id": author,
-                      "tool_type": None if kind == "Барлық түр" else kind, "min_score": minimum, "max_score": maximum}
-            st.session_state["filters"] = {k: v for k, v in values.items() if v is not None and v != "" and not (k.endswith("_id") and v == 0)}
-    params = st.session_state.get("filters", {})
+        st.button("Сүзгілерді тазарту", on_click=reset_filters)
+    if minimum is not None and maximum is not None and minimum > maximum:
+        st.error("Ең төменгі балл жоғарғы баллдан үлкен болмауы тиіс")
+        st.stop()
+    values = {"search": search.strip(), "discipline_id": discipline, "author_id": author,
+              "tool_type": None if kind == "Барлық түр" else kind, "min_score": minimum, "max_score": maximum}
+    params = {k: v for k, v in values.items() if v is not None and v != "" and not (k.endswith("_id") and v == 0)}
     tools = call("GET", "/assessment-tools", params=params) if params else all_tools
     if tools is not None:
         st.caption(f"Табылды: {len(tools)} құрал")
@@ -115,7 +108,10 @@ if page == "Бағалау құралдары":
             st.dataframe([{"№": t["id"], "Атауы": t["title"], "Түрі": t["tool_type"],
                            "Пән": discipline_labels.get(t["discipline_id"], ""), "Автор": teacher_labels.get(t["author_id"], ""),
                            "Жалпы балл": float(t["total_score"])} for t in tools], hide_index=True, width="stretch")
-            chosen = st.selectbox("Толық көру үшін құралды таңдаңыз", [t["id"] for t in tools], format_func=tool_labels.get)
+            tool_ids = [t["id"] for t in tools]
+            if st.session_state.get("selected_tool") not in tool_ids:
+                st.session_state["selected_tool"] = tool_ids[0]
+            chosen = st.selectbox("Толық көру үшін құралды таңдаңыз", tool_ids, format_func=tool_labels.get, key="selected_tool")
             current = next(t for t in tools if t["id"] == chosen)
             with st.expander(current["title"], expanded=True):
                 detail(current)
@@ -173,6 +169,7 @@ elif page in ("Құрал қосу", "Құралды өзгерту"):
                 saved = api_request("POST", "/assessment-tools", data=payload)
                 st.session_state["notice"] = f"№{saved['id']} бағалау құралы қосылды."
                 st.session_state["create_generation"] = st.session_state.get("create_generation", 0) + 1
+                st.session_state["open_created_tool"] = saved["id"]
                 st.rerun()
         except (ValueError, APIError) as error:
             st.error(str(error))
