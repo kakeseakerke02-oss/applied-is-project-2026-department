@@ -3,6 +3,7 @@ from decimal import Decimal, InvalidOperation
 from pathlib import Path
 import streamlit as st
 from app.frontend.api import APIError, api_request
+from app.frontend.export import export_csv
 
 ROOT = Path(__file__).resolve().parents[2]
 TYPES = ["Тест", "Емтихан", "Зертханалық жұмыс", "Практикалық тапсырма"]
@@ -105,6 +106,11 @@ if page == "Бағалау құралдары":
         if not tools:
             st.info("Бұл шарттарға сәйкес құрал табылмады. Сүзгілерді өзгертіп көріңіз.")
         else:
+            st.download_button(
+                "CSV файлын жүктеу", data=export_csv(tools, discipline_labels, teacher_labels),
+                file_name="bagalau_quraldary.csv", mime="text/csv",
+                help="Ағымдағы сүзгіге сәйкес құралдарды Excel үшін жүктеу.",
+            )
             st.dataframe([{"№": t["id"], "Атауы": t["title"], "Түрі": t["tool_type"],
                            "Пән": discipline_labels.get(t["discipline_id"], ""), "Автор": teacher_labels.get(t["author_id"], ""),
                            "Жалпы балл": float(t["total_score"])} for t in tools], hide_index=True, width="stretch")
