@@ -1,0 +1,23 @@
+1. FastAPI үшін python:3.11-slim негізіндегі Dockerfile жаса.
+Тәуелділіктерді кэштеу үшін requirements.backend.txt файлын алдымен
+requirements.txt ретінде көшіріп, pip install --no-cache-dir орында.
+Кодты кейін көшір. Порт 8000, Uvicorn адресі 0.0.0.0 болсын.
+База /data/database.db ішінде сақталсын.
+
+2. Streamlit үшін Dockerfile.frontend жаса. python:3.11-slim қолдан.
+requirements.frontend.txt ішіндегі кітапханаларды орнат. app/frontend,
+app/__init__.py, docs және .streamlit файлдарын көшір. PYTHONPATH=/app
+қой. 8501 портында және 0.0.0.0 адресінде streamlit run іске қосылсын.
+
+3. docker-compose.yml ішінде backend және frontend болсын. Порттар:
+8000:8000 және 8501:8501. BACKEND_URL=http://backend:8000 қолдан.
+Frontend backend healthcheck өткен соң қосылсын. Ортақ bridge желісін және
+базаға арналған department_data named volume жаса.
+
+4. .dockerignore ішінде venv, .git, .env, *.db және Python кэшін алып таста.
+Жергілікті database.db image ішінде болмауы тиіс. Алғашқы контейнер базасы
+seed.py арқылы жасалсын, кейінгі іске қосуда бар деректер сақталсын.
+
+5. docker compose config, docker compose up --build, docker compose ps
+командаларымен тексер. Браузерде кесте мен қосу формасын сына. down және
+up қайта орындалғанда деректер volume ішінде қалатынын тексер.

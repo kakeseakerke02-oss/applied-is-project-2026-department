@@ -1,7 +1,7 @@
 # Кафедраның бағалау құралдары қоры
 
 **Пән:** Ақпараттық жүйелердің қолданбалы бағдарламалық қамтылымы.
-**Кезең:** 1–5-зертханалық жұмыстар — база, CRUD API және Streamlit веб-интерфейсі.
+**Кезең:** 1–6-зертханалық жұмыстар — база, CRUD API, Streamlit интерфейсі және Docker конфигурациясы.
 
 ## Пәндік облыс
 Жүйе кафедраның пәндер бойынша бағалау материалдарын бір жерге жинауға арналған.
@@ -409,3 +409,104 @@ git push origin main
 Нұсқаулықтағы git add ui.py орнына нақты файл жолы app/frontend/ui.py қолданылды.
 Ресми анықтама: [Streamlit text_input](https://docs.streamlit.io/develop/api-reference/widgets/st.text_input),
 [Streamlit формалары](https://docs.streamlit.io/develop/concepts/architecture/forms).
+
+## 6 зертханалық жұмыс
+
+### Файлдар
+- Dockerfile — FastAPI, Python 3.11 slim, порт 8000.
+- Dockerfile.frontend — Streamlit, Python 3.11 slim, порт 8501.
+- docker-compose.yml — екі сервис, ортақ желі, healthcheck және база volume-ы.
+- .dockerignore — venv, .git, .env, жергілікті база мен кэшті build контекстінен алып тастайды.
+- requirements.backend.txt / requirements.frontend.txt — әр компонентке қажетті кітапханалар.
+- requirements.txt — жергілікті орта үшін екі тізімді біріктіреді.
+- app/container_start.py — жаңа контейнер базасын дайындап, Uvicorn іске қосады.
+
+Екі Dockerfile ішінде тәуелділіктер алдымен көшіріліп, pip install орындалады.
+Код содан кейін көшіріледі: код қана өзгерсе, тәуелділіктер қабаты кэштен алынады.
+Әр сервис өзінің кітапханаларын ғана орнатады; backend image-іне Streamlit қажет емес.
+Контейнерлер appuser пайдаланушысы атынан жұмыс істейді.
+
+### Docker Desktop дайындау
+Windows үшін [Docker Desktop ресми нұсқаулығын](https://docs.docker.com/desktop/setup/install/windows-install/)
+қолданып орнатыңыз. Docker Desktop-ты ашып, Linux контейнерлері engine-інің
+іске қосылғанын күтіңіз. Орнату аяқталған соң VS Code терминалын қайта ашыңыз.
+```powershell
+docker --version
+docker compose version
+docker info
+```
+Егер Docker WSL жаңартуын немесе компьютерді қайта қосуды сұраса,
+сол нұсқауды орындап, содан кейін Docker Desktop-ты қайта ашыңыз.
+
+### Құру және бір командамен іске қосу
+Бұрынғы Uvicorn/Streamlit терминалдарында Ctrl+C басып, 8000 және 8501
+порттарын босатыңыз. Жоба түбірінен:
+```powershell
+docker compose config
+docker compose up --build
+```
+Алғашқы құру кезінде Python image-і мен кітапханалары интернеттен жүктеледі.
+Кейін image пен кэш жергілікті сақталады. Нұсқаулықтағы docker-compose
+орнына Docker Desktop-тағы қазіргі docker compose командасы қолданылады.
+version: "3.8" нұсқаулыққа сай сақталған; қазіргі Compose оны obsolete
+деп ескертуі мүмкін. Бұл ескерту YAML қатесі емес.
+
+Дайын сервистер:
+- **Сайт:** http://localhost:8501
+- **Swagger:** http://localhost:8000/docs
+
+Бұл Docker нұсқасында API порты — 8000. Бұрынғы жергілікті іске қосу 8001
+портын қолданған. Frontend ішінде BACKEND_URL=http://backend:8000 орнатылған;
+бұл мән app/frontend/api.py ішіндегі os.getenv арқылы оқылады.
+
+### Желіні түсіндіру
+Compose екі сервисті department_net bridge желісіне қосады. Docker ішкі DNS
+арқылы backend атауын сол контейнердің адресіне сәйкестендіреді. Frontend
+контейнеріндегі localhost фронтендтің өзін білдіретіндіктен, серверге
+http://backend:8000 арқылы жүгінеді. Хост браузері Docker ішкі backend
+атауын қолданбайды: ол жарияланған localhost:8501 немесе localhost:8000
+порттарын ашады. Frontend backend healthcheck сәтті өткеннен кейін іске қосылады.
+
+### Базаны сақтау
+SQLite контейнерде /data/database.db жолында, department_data named volume
+ішінде сақталады. Алғашқы жаңа база seed.py арқылы тестілік деректермен
+толтырылады. Кейінгі іске қосулар бар базаны қайта seed жасамайды, сондықтан
+қосылған, өзгертілген және жойылған жазбалар сол күйінде сақталады.
+Жергілікті жоба түбіріндегі database.db контейнерге автоматты көшірілмейді;
+жергілікті базаңыз орнында қалады. Docker үшін бөлек база жасалады.
+
+Тоқтату және кейін қайта қосу:
+```powershell
+docker compose down
+docker compose up -d
+```
+Кәдімгі down volume-ды сақтайды. `down -v` volume-ды және ішіндегі базаны
+жояды; деректі сақтау керек болса, -v қолданбаңыз.
+
+### Тексеру және қорғау
+```powershell
+docker compose ps
+docker compose logs --tail=50 backend frontend
+```
+Екі сервис healthy болуы тиіс. Браузерде кестені, іздеуді және жаңа жазба
+қосуды тексеріңіз. down, кейін up -d жасап, қосылған жазбаның сақталғанын
+көрсетіңіз. Контейнерлердің іске қосылуын тек нақты Docker engine жұмыс
+істеп тұрған компьютерде тексеруге болады; конфигурацияның болуы іске
+қосылу дәлелі емес.
+
+База инициализациясының жеке тесті:
+```powershell
+.\venv\Scripts\python.exe -m unittest discover -s tests -p test_container_start.py -v
+```
+Ол Docker engine-ді тексермейді: бөлек уақытша SQLite базасында алғашқы
+толтыру мен қайта іске қосылғанда өзгерістерді сақтауды тексереді.
+
+### Git
+```powershell
+git add Dockerfile Dockerfile.frontend docker-compose.yml .dockerignore requirements*.txt app/container_start.py tests/test_container_start.py docs/lab6_ai_prompts.txt README.md
+git commit -m "chore: containerize application with Docker and Docker Compose"
+git push origin main
+```
+ИИ сұраныстары: [lab6_ai_prompts.txt](docs/lab6_ai_prompts.txt).
+Ресми анықтама: [Compose іске қосу реті](https://docs.docker.com/compose/how-tos/startup-order/),
+[Compose сервистері](https://docs.docker.com/reference/compose-file/services/).

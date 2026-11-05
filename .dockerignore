@@ -1,0 +1,31 @@
+# Виртуалды орталар және Git метадеректері
+venv/
+.venv/
+env/
+.git/
+.idea/
+.vscode/
+# Python кэші, тест және құрастыру нәтижелері
+**/__pycache__/
+**/*.pyc
+**/*.pyo
+.pytest_cache/
+.coverage
+htmlcov/
+build/
+dist/
+*.egg-info/
+tests/
+# Жергілікті база мен құпия файлдар image ішіне көшірілмейді
+**/*.db
+**/*.db-*
+**/*.sqlite
+**/*.sqlite3
+.env
+.env.*
+!.env.example
+*.log
+*.zip
+*.code-workspace
+Thumbs.db
+.DS_Store

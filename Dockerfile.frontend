@@ -1,0 +1,22 @@
+FROM python:3.11-slim
+
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    PYTHONPATH=/app \
+    BACKEND_URL=http://backend:8000
+
+WORKDIR /app
+
+COPY requirements.frontend.txt ./requirements.txt
+RUN pip install --no-cache-dir -r requirements.txt
+
+COPY app/__init__.py ./app/__init__.py
+COPY app/frontend ./app/frontend
+COPY docs ./docs
+COPY .streamlit ./.streamlit
+
+RUN useradd --create-home --user-group --uid 10001 appuser
+USER appuser
+
+EXPOSE 8501
+CMD ["python", "-m", "streamlit", "run", "app/frontend/ui.py", "--server.port=8501", "--server.address=0.0.0.0", "--server.headless=true"]
