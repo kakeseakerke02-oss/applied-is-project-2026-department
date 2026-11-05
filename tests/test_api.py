@@ -92,7 +92,7 @@ class AssessmentAPITest(unittest.TestCase):
     def test_get_routes_and_openapi(self):
         code, root = self.request("/")
         self.assertEqual(code, 200)
-        self.assertEqual(root["labs"], [1, 2, 3, 4])
+        self.assertEqual(root["labs"], [1, 2, 3, 4, 5])
         code, tools = self.request("/assessment-tools")
         self.assertEqual(code, 200)
         self.assertGreaterEqual(len(tools), 5)
@@ -105,6 +105,11 @@ class AssessmentAPITest(unittest.TestCase):
         self.assertEqual(code, 200)
         self.assertIn("post", spec["paths"]["/assessment-tools"])
         self.assertNotIn("id", spec["components"]["schemas"]["AssessmentToolCreate"]["properties"])
+        code, references = self.request("/reference-data")
+        self.assertEqual(code, 200)
+        self.assertEqual(len(references["disciplines"]), 3)
+        self.assertEqual(len(references["teachers"]), 3)
+        self.assertIn("label", references["teachers"][0])
 
     def test_post_atomic_creation_validation_and_conflicts(self):
         sample = json.loads((ROOT / "docs/post_example.json").read_text(encoding="utf-8"))
@@ -184,3 +189,49 @@ class AssessmentAPITest(unittest.TestCase):
         with closing(sqlite3.connect(self.db_path)) as connection:
             self.assertEqual(connection.execute("SELECT COUNT(*) FROM assessmenttool WHERE id=?", (tool_id,)).fetchone()[0], 0)
             self.assertEqual(connection.execute("SELECT COUNT(*) FROM criterion WHERE assessment_tool_id=?", (tool_id,)).fetchone()[0], 0)
+
+    def test_streamlit_user_flow(self):
+        from unittest.mock import patch
+        from streamlit.testing.v1 import AppTest
+
+        def button(app, label):
+            return next(item for item in app.button if item.label == label)
+
+        with patch.dict(os.environ, {"BACKEND_URL": self.base}):
+            ui = AppTest.from_file(str(ROOT / "app/frontend/ui.py")).run(timeout=30)
+            self.assertFalse(ui.exception)
+            self.assertEqual(len(ui.metric), 3)
+            ui.text_input[0].set_value("SQL")
+            button(ui, "Іздеу").click().run(timeout=30)
+            self.assertFalse(ui.exception)
+            self.assertTrue(all("sql" in v.casefold() for v in ui.dataframe[0].value["Атауы"]))
+            button(ui, "Сүзгілерді тазарту").click().run(timeout=30)
+            self.assertEqual(ui.text_input[0].value, "")
+
+            ui.radio[0].set_value("Құрал қосу").run(timeout=30)
+            self.assertFalse(ui.exception)
+            ui.text_input[0].set_value("Интерфейс арқылы тестілік құрал")
+            ui.text_area[0].set_value("Қазақша интерфейс арқылы жасалған тапсырма.")
+            button(ui, "Құралды қосу").click().run(timeout=30)
+            self.assertFalse(ui.exception)
+            found = self.request("/assessment-tools?" + urlencode({"search": "Интерфейс арқылы тестілік құрал"}))[1]
+            self.assertEqual(len(found), 1)
+            created_id = found[0]["id"]
+            self.assertEqual(found[0]["total_score"], "30.00")
+
+            ui.radio[0].set_value("Құралды өзгерту").run(timeout=30)
+            ui.selectbox[0].set_value(created_id).run(timeout=30)
+            ui.text_input[0].set_value("Интерфейс арқылы жаңартылған құрал")
+            button(ui, "Өзгерістерді сақтау").click().run(timeout=30)
+            self.assertFalse(ui.exception)
+            self.assertEqual(self.request(f"/assessment-tools/{created_id}")[1]["title"], "Интерфейс арқылы жаңартылған құрал")
+
+            ui.radio[0].set_value("Құралды жою").run(timeout=30)
+            ui.selectbox[0].set_value(created_id).run(timeout=30)
+            self.assertTrue(button(ui, "Құралды жою").disabled)
+            ui.checkbox[0].set_value(True).run(timeout=30)
+            button(ui, "Құралды жою").click().run(timeout=30)
+            self.assertFalse(ui.exception)
+            self.assertEqual(self.request(f"/assessment-tools/{created_id}")[0], 404)
+            ui.radio[0].set_value("Жоба туралы").run(timeout=30)
+            self.assertFalse(ui.exception)
